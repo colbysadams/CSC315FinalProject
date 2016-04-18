@@ -14,7 +14,7 @@ import javax.swing.JFrame;
 public class TravelAgencyGUI extends JFrame
 {
 
-    public TravelAgencyGUI()
+    private public TravelAgencyGUI()
     {
         super();
 
