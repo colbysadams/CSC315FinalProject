@@ -7,12 +7,14 @@ package csc315finalproject;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,139 +24,63 @@ public class CSC315FinalProjectMain
 {
 
     private static Connection connect;
-    private static ResultSet resultSet;
     private static Statement statement;
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
 
-        String airportFile = "airports.txt";
-//        String airlineFile = args[1];
-//        String routeFile = args[2];
+        Scanner inFile;
 
         try
         {
 
-            Scanner inFile = new Scanner(new FileReader(airportFile));
+            Class.forName("com.mysql.jdbc.Driver");
 
-            try
-            {
+            connect = DriverManager.getConnection("jdbc:mysql://localhost/AirTravel", "CSC315USER", "password");
 
-                //String Query = "select * from AirPort_T order by AirportCode";
-                //String insert = "insert into Airport_T values ('MSY', 'Louis Armstrong','New Orleans', 'USA', 5)";
-                Class.forName("com.mysql.jdbc.Driver");
+            statement = connect.createStatement();
 
-                connect = DriverManager.getConnection("jdbc:mysql://localhost/AirTravel", "CSC315USER", "password");
+            statement.execute("delete from ReservationFlight_T;");
+            statement.execute("delete from FrequentFlyerMembership_T;");
 
-                statement = connect.createStatement();
+            statement.execute("delete from FlightInstance_T;");
+            statement.execute("delete from FlightPath_T;");
+            statement.execute("delete from PaymentMethod_T;");
+            statement.execute("delete from Plane_T;");
+            statement.execute("delete from Preference_T;");
 
-                //ResultSet resultSet = statement.executeQuery(Query);
-//                while (resultSet.next())
-//                {
-//
-//                    String sname = resultSet.getString("AirportCode");
-//
-//                    System.out.println(sname);
-//                }
-            }
-            catch (Exception e)
-            {
-                System.out.println("crap...");
-            }
+            statement.execute("delete from Airport_T;");
+            statement.execute("delete from Reservation_T;");
+            statement.execute("delete from AirlineCarrier_T;");
+            statement.execute("delete from Customer_T;");
 
-            String FAACode;
-            String name;
-            String city;
-            String country;
-            int phoneNumber = 1234567890;
-
+            inFile = new Scanner(new FileReader("buildDatabase.txt"));
             inFile.useDelimiter(",");
 
-            while (inFile.hasNext())
-            {
-                inFile.next();
-                name = inFile.next();
-                name = name.replace('"', '\'');
-                city = inFile.next();
-                city = city.replace('"', '\'');
-                country = inFile.next();
-                country = country.replace('"', '\'');
-                FAACode = inFile.next();
-                FAACode = FAACode.replace('"', '\'');
-                if (FAACode.equals("''"))
-                {
-                    inFile.nextLine();
-                    continue;
-                }
-                try
-                {
-                    statement.execute(("insert into Airport_T values (" + FAACode
-                            + ", " + name + ", " + city + ", " + country
-                            + ", " + phoneNumber + ");"));
-                }
-                catch (SQLException e)
-                {
+            //PrintWriter writer = new PrintWriter(new FileWriter("build.txt"));
+            while (inFile.hasNextLine())
 
-                }
-                phoneNumber++;
-                inFile.nextLine();
-            }
+                statement.addBatch(inFile.nextLine());
 
-            inFile = new Scanner(new FileReader("airlines.txt"));
-            inFile.useDelimiter(",");
-            String callSign;
-            while (inFile.hasNext())
-            {
-                inFile.next();
-                name = inFile.next();
-                name = name.replace('"', '\'');
-                inFile.next();
-                inFile.next();
-                FAACode = inFile.next();
-                FAACode = FAACode.replace('"', '\'');
-                callSign = inFile.next();
-                callSign = callSign.replace('"', '\'');
-                country = inFile.next();
-                country = country.replace('"', '\'');
-
-                if (FAACode.equals("''"))
-                {
-                    inFile.nextLine();
-                    continue;
-                }
-                try
-                {
-                    statement.execute(("insert into AirlineCarrier_T "
-                            + "(AirlineName, AirlineCountry, PhoneNumber, AirlineCode, AirlineCallSign) "
-                            + "values (" + name + ", " + country + ", " + phoneNumber
-                            + ", " + FAACode + ", " + callSign + ");"));
-                }
-                catch (SQLException ex)
-                {
-                    //If already in database, skip
-                }
-
-                phoneNumber++;
-                inFile.nextLine();
-            }
-
+            statement.executeBatch();
         }
-        catch (FileNotFoundException e)
+        catch (FileNotFoundException | SQLException | ClassNotFoundException e)
         {
-
+            Logger.getLogger(CSC315FinalProjectMain.class.getName()).log(Level.SEVERE, null, e);
         }
 
         try
         {
-            resultSet.close();
+
             statement.close();
             connect.close();
         }
-        catch (Exception e)
+        catch (SQLException ex)
         {
+            Logger.getLogger(CSC315FinalProjectMain.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
