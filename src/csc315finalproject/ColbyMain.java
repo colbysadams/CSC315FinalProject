@@ -53,16 +53,21 @@ public class ColbyMain
          * Take Argument for dataFile from CommandLine
          *
          */
-        if (args.length != 3)
+        if (args.length == 0)
+        {
+            tableFileString = "tables.txt";
+            queryFileString = "queries.txt";
+            dataFileString = "data.txt";
+        } else if (args.length != 3)
         {
             System.out.println("incorrect arguments: <table file> <data file> <query file>");
             System.exit(-1);
+        } else
+        {
+            tableFileString = args[0];
+            dataFileString = args[1];
+            queryFileString = args[2];
         }
-
-        tableFileString = args[0];
-        dataFileString = args[1];
-        queryFileString = args[2];
-
         //Paths dataFilePath = Paths.
 
         /*
@@ -82,7 +87,7 @@ public class ColbyMain
             /*
              * get userName from user
              */
-            System.out.print("Enter User Name for Server: ");
+            System.out.print("Enter User Name: ");
             userName = scan.nextLine();
 
             /*
