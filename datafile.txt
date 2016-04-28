@@ -1,3 +1,128 @@
+CREATE TABLE Airport_T (
+    AirportCode CHAR(3) NOT NULL,
+    AirportName VARCHAR(255) NOT NULL,
+    AirportCity VARCHAR(255) NOT NULL,
+    AirportCountry VARCHAR(255) DEFAULT 'United States',
+    PhoneNumber INT,
+    PRIMARY KEY (AirportCode)
+);
+
+CREATE TABLE AirlineCarrier_T (
+    AirlineName VARCHAR(255) NOT NULL,
+    AirlineCallSign VARCHAR(255),
+    AirlineStreet VARCHAR(255),
+    AirlineCity VARCHAR(255),
+    AirlineCountry VARCHAR(255),
+    PhoneNumber INT,
+    AirlineCode CHAR(3) NOT NULL UNIQUE,
+    PRIMARY KEY (AirlineName)
+);
+
+CREATE TABLE FlightPath_T (
+    AirlineCode CHAR(3) NOT NULL,
+    FlightNumber INT(4) NOT NULL,
+    DepartAirport CHAR(3) NOT NULL,
+    ArriveAirport CHAR(3) NOT NULL,
+    CONSTRAINT FlightPath_PK PRIMARY KEY (AirlineCode , FlightNumber),
+    FOREIGN KEY (AirlineCode)
+        REFERENCES AirlineCarrier_T (AirlineCode),
+    FOREIGN KEY (DepartAirport)
+        REFERENCES Airport_T (AirportCode),
+    FOREIGN KEY (ArriveAirport)
+        REFERENCES Airport_T (AirportCode)
+);
+
+CREATE TABLE Plane_T (
+    TailNumber VARCHAR(10) PRIMARY KEY,
+    PlaneModel VARCHAR(255) NOT NULL,
+    EngineType VARCHAR(255),
+    BusinessSeats INT(3) NOT NULL,
+    EconomySeats INT(4) NOT NULL
+);
+
+CREATE TABLE FlightInstance_T (
+    AirlineCode CHAR(3) NOT NULL,
+    FlightNumber INT(4) NOT NULL,
+    PlaneID VARCHAR(10) NOT NULL,
+    FlightDate DATE NOT NULL,
+    DepartTime TIME NOT NULL,
+    ArriveTime TIME NOT NULL,
+    TicketPriceFirst NUMERIC(6 , 2 ),
+    ticketPriceEcon NUMERIC(6 , 2 ),
+    ReservedEconomySeats INT DEFAULT 0,
+    ReservedBusinessSeats INT DEFAULT 0,
+    CONSTRAINT FlightInstance_PK PRIMARY KEY (AirlineCode , FlightNumber , FlightDate),
+    FOREIGN KEY (PlaneID)
+        REFERENCES Plane_T (TailNumber),
+    FOREIGN KEY (AirlineCode , FlightNumber)
+        REFERENCES FlightPath_T (AirlineCode , FlightNumber)
+);
+
+CREATE TABLE Customer_T (
+    CustomerID INT NOT NULL AUTO_INCREMENT,
+    CustomerName VARCHAR(255) NOT NULL,
+    CustomerStreet VARCHAR(255) NOT NULL,
+    CustomerCity VARCHAR(255) NOT NULL,
+    CustomerCountry VARCHAR(255) DEFAULT 'United States',
+    PhoneNumber INT(9),
+    PRIMARY KEY (CustomerID)
+);
+
+CREATE TABLE FrequentFlyerMembership_T (
+    CustomerID INT NOT NULL,
+    AirlineID char(3) NOT NULL,
+    Miles INT DEFAULT 0,
+    CONSTRAINT FFMembership_PK PRIMARY KEY (CustomerID , AirlineID),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID),
+    FOREIGN KEY (AirlineID)
+        REFERENCES AirLineCarrier_T (AirlineCode)
+);
+
+CREATE TABLE PaymentMethod_T (
+    CustomerID INT NOT NULL,
+    PaymentMethod VARCHAR(255) NOT NULL,
+    CardNumber BIGINT,
+    CONSTRAINT PaymentMethod_PK PRIMARY KEY (CustomerID , PaymentMethod),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID)
+);
+
+CREATE TABLE Preference_T (
+    CustomerID INT NOT NULL,
+    Preference VARCHAR(255) NOT NULL,
+    Details VARCHAR(255),
+    CONSTRAINT Preference_PK PRIMARY KEY (CustomerID , Preference),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID)
+);
+
+CREATE TABLE Reservation_T (
+    ReservationID INT NOT NULL AUTO_INCREMENT,
+    CustomerID INT NOT NULL,
+    PaymentMethod VARCHAR(255) REFERENCES PaymentMethod_T (PaymentMethod),
+    FFMembership VARCHAR(255) REFERENCES AirLine_T (AirlineName),
+    Preference VARCHAR(255) REFERENCES Preference_T (Preference),
+    TravelAgent VARCHAR(255),
+    Confirmed BOOLEAN,
+    PRIMARY KEY (ReservationID),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID)
+);
+
+CREATE TABLE ReservationFlight_T (
+    ReservationID INT,
+    AirlineCode CHAR(3) NOT NULL,
+    FlightNumber INT(4) NOT NULL,
+    FlightDate DATE NOT NULL,
+    Avaliable BOOLEAN,
+    CONSTRAINT ReservationFlight_PK PRIMARY KEY (ReservationID , AirlineCode , FlightNumber , FlightDate),
+    CONSTRAINT FlightInstance_FK FOREIGN KEY (AirlineCode , FlightNumber , FlightDate)
+        REFERENCES FlightInstance_T (AirlineCode , FlightNumber , FlightDate),
+    FOREIGN KEY (ReservationID)
+        REFERENCES Reservation_T (ReservationID)
+);
+
 insert into Airport_T values ('DFW', 'Dallas Fort Worth Intl', 'Dallas-Fort Worth', 'United States', 1234570533);
 insert into Airport_T values ('LAX', 'Los Angeles Intl', 'Los Angeles', 'United States', 1234570349);
 insert into Airport_T values ('GKA',  'Goroka',  'Goroka',  'Papua New Guinea', 1234567890);
@@ -116,7 +241,7 @@ insert into AirlineCarrier_T values ('Visionair', 'VISIONAIR', '2738 Desk Avenue
 insert into AirlineCarrier_T values ('Western Air', 'WESTERN BAHAMAS', '3151 ComputerMonitor Court', 'Made Up City', 'Bahamas', 1234568003, 'WST');
 insert into AirlineCarrier_T values ('Tyrolean Airways', 'TYROLEAN', '1282 Riverway Drive', 'Made Up City', \N, 1234568004, 'TYR');
 insert into AirlineCarrier_T values ('Enerjet', 'ENERJET AIR', '9251 Wire Drive', 'Made Up City', 'Canada', 1234568005, 'ENJ');
-insert into AirlineCarrier_T values ('Buquebus LÃ­neas AÃ©reas', '', '9626 Hampson Street', 'Made Up City', 'Uruguay', 1234568006, 'BQB');
+insert into AirlineCarrier_T values ('Buquebus L’neas AŽreas', '', '9626 Hampson Street', 'Made Up City', 'Uruguay', 1234568006, 'BQB');
 insert into AirlineCarrier_T values ('Usa Sky Cargo', 'USKY', '608 Desk Avenue', 'Made Up City', 'United States', 1234568007, 'ES2');
 insert into AirlineCarrier_T values ('Orbit Airlines Azerbaijan', 'Orbitaz', '2837 ComputerMonitor Court', 'Made Up City', 'Azerbaijan', 1234568008, 'OAB');
 insert into AirlineCarrier_T values ('Rainbow Air (RAI)', 'Rainbow', '3905 Squirrel Boulevard', 'Made Up City', 'United States', 1234568009, 'RAB');
@@ -743,3 +868,90 @@ insert into ReservationFlight_T values (8, 'TLD', 10,'20081227', FALSE);
 insert into Reservation_T(ReservationID, CustomerID, PaymentMethod, Preference, TravelAgent, Confirmed) values (9, 9, 'Credit Card', 'Window Seat', 'Camille', FALSE);
 insert into ReservationFlight_T values (9, 'KRB', 10,'20081223', FALSE);
 insert into ReservationFlight_T values (9, 'ICS', 6,'20121221', FALSE);
+SELECT 
+    *
+FROM
+    FlightPath_T
+ORDER BY AirlineCode , FlightNumber;
+
+SELECT 
+    FI.AirlineCode,
+    FI.FlightNumber,
+    FI.DepartTime,
+    FI.ArriveTime
+FROM
+    FlightInstance_T FI,
+    FlightPath_T FP
+WHERE
+    FI.AirlineCode = FP.AirlineCode
+        AND FI.FlightNumber = FP.FlightNumber
+        AND FP.DepartAirport = 'DFW'
+        AND FP.ArriveAirport = 'LAX'
+        AND FI.FlightDate = '20061231';
+
+SELECT 
+    A.AirlineName, COUNT(B.AirlineCode) AS '# from DFW'
+FROM
+    AirlineCarrier_T A,
+    (SELECT 
+        FI.AirlineCode
+    FROM
+        FlightInstance_T FI, FlightPath_T FP
+    WHERE
+        FI.AirlineCode = FP.AirlineCode
+            AND FI.FlightNumber = FP.FlightNumber
+            AND FP.DepartAirport = 'DFW'
+            AND FI.FlightDate = '20061231') B
+WHERE
+    A.AirlineCode = B.AirlineCode
+GROUP BY A.AirlineName
+;
+
+SELECT 
+    A.AirportName AS 'Departing Airport',
+    AC.AirlineName,
+    COUNT(AC.AirlineCode) AS '# of Flights',
+    AVG(FI.TicketPriceEcon) AS 'AVG TicketPrice'
+FROM
+    AirlineCarrier_T AC,
+    FlightInstance_T FI,
+    FlightPath_T FP,
+    Airport_T A
+WHERE
+    AC.AirlineCode = FI.AirlineCode
+        AND FI.AirlineCode = FP.AirlineCode
+        AND FI.FlightNumber = FP.FlightNumber
+        AND A.AirportCode = FP.DepartAirport
+GROUP BY FP.DepartAirport , AC.AirlineName
+ORDER BY A.AirportName , AC.AirlineName
+;
+
+SELECT 
+    AirlineCode, FlightNumber, FlightDate
+FROM
+    (FlightInstance_T FI
+    NATURAL JOIN (FlightPath_T FP)),
+    Plane_T P
+WHERE
+    DepartAirport = 'DFW'
+        AND ArriveAirport = 'LAX'
+        AND ticketPriceEcon < 500
+        AND P.TailNumber = PlaneID
+        AND ReservedEconomySeats < EconomySeats;
+
+SELECT 
+    AirlineCode,
+    FlightNumber,
+    FlightDate,
+    EconomySeats - ReservedEconomySeats AS 'AvailableSeats',
+    ticketPriceEcon AS 'Ticket Price'
+FROM
+    (FlightInstance_T FI
+    NATURAL JOIN (FlightPath_T FP)),
+    Plane_T P
+WHERE
+    DepartAirport = 'DFW'
+        AND ArriveAirport = 'LAX'
+        AND ticketPriceEcon < 500
+        AND P.TailNumber = PlaneID
+        AND ReservedEconomySeats < EconomySeats;
