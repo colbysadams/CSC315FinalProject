@@ -1,0 +1,87 @@
+SELECT 
+    *
+FROM
+    FlightPath_T
+ORDER BY AirlineCode , FlightNumber;
+
+SELECT 
+    FI.AirlineCode,
+    FI.FlightNumber,
+    FI.DepartTime,
+    FI.ArriveTime
+FROM
+    FlightInstance_T FI,
+    FlightPath_T FP
+WHERE
+    FI.AirlineCode = FP.AirlineCode
+        AND FI.FlightNumber = FP.FlightNumber
+        AND FP.DepartAirport = 'DFW'
+        AND FP.ArriveAirport = 'LAX'
+        AND FI.FlightDate = '20061231';
+
+SELECT 
+    A.AirlineName, COUNT(B.AirlineCode) AS '# from DFW'
+FROM
+    AirlineCarrier_T A,
+    (SELECT 
+        FI.AirlineCode
+    FROM
+        FlightInstance_T FI, FlightPath_T FP
+    WHERE
+        FI.AirlineCode = FP.AirlineCode
+            AND FI.FlightNumber = FP.FlightNumber
+            AND FP.DepartAirport = 'DFW'
+            AND FI.FlightDate = '20061231') B
+WHERE
+    A.AirlineCode = B.AirlineCode
+GROUP BY A.AirlineName
+;
+
+SELECT 
+    A.AirportName AS 'Departing Airport',
+    AC.AirlineName,
+    COUNT(AC.AirlineCode) AS '# of Flights',
+    AVG(FI.TicketPriceEcon) AS 'AVG TicketPrice'
+FROM
+    AirlineCarrier_T AC,
+    FlightInstance_T FI,
+    FlightPath_T FP,
+    Airport_T A
+WHERE
+    AC.AirlineCode = FI.AirlineCode
+        AND FI.AirlineCode = FP.AirlineCode
+        AND FI.FlightNumber = FP.FlightNumber
+        AND A.AirportCode = FP.DepartAirport
+GROUP BY FP.DepartAirport , AC.AirlineName
+ORDER BY A.AirportName , AC.AirlineName
+;
+
+SELECT 
+    AirlineCode, FlightNumber, FlightDate
+FROM
+    (FlightInstance_T FI
+    NATURAL JOIN (FlightPath_T FP)),
+    Plane_T P
+WHERE
+    DepartAirport = 'DFW'
+        AND ArriveAirport = 'LAX'
+        AND ticketPriceEcon < 500
+        AND P.TailNumber = PlaneID
+        AND ReservedEconomySeats < EconomySeats;
+
+SELECT 
+    AirlineCode,
+    FlightNumber,
+    FlightDate,
+    EconomySeats - ReservedEconomySeats AS 'AvailableSeats',
+    ticketPriceEcon AS 'Ticket Price'
+FROM
+    (FlightInstance_T FI
+    NATURAL JOIN (FlightPath_T FP)),
+    Plane_T P
+WHERE
+    DepartAirport = 'DFW'
+        AND ArriveAirport = 'LAX'
+        AND ticketPriceEcon < 500
+        AND P.TailNumber = PlaneID
+        AND ReservedEconomySeats < EconomySeats;

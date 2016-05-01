@@ -1,0 +1,124 @@
+CREATE TABLE Airport_T (
+    AirportCode CHAR(3) NOT NULL,
+    AirportName VARCHAR(255) NOT NULL,
+    AirportCity VARCHAR(255) NOT NULL,
+    AirportCountry VARCHAR(255) DEFAULT 'United States',
+    PhoneNumber INT,
+    PRIMARY KEY (AirportCode)
+);
+
+CREATE TABLE AirlineCarrier_T (
+    AirlineName VARCHAR(255) NOT NULL,
+    AirlineCallSign VARCHAR(255),
+    AirlineStreet VARCHAR(255),
+    AirlineCity VARCHAR(255),
+    AirlineCountry VARCHAR(255),
+    PhoneNumber INT,
+    AirlineCode CHAR(3) NOT NULL UNIQUE,
+    PRIMARY KEY (AirlineName)
+);
+
+CREATE TABLE FlightPath_T (
+    AirlineCode CHAR(3) NOT NULL,
+    FlightNumber INT(4) NOT NULL,
+    DepartAirport CHAR(3) NOT NULL,
+    ArriveAirport CHAR(3) NOT NULL,
+    CONSTRAINT FlightPath_PK PRIMARY KEY (AirlineCode , FlightNumber),
+    FOREIGN KEY (AirlineCode)
+        REFERENCES AirlineCarrier_T (AirlineCode),
+    FOREIGN KEY (DepartAirport)
+        REFERENCES Airport_T (AirportCode),
+    FOREIGN KEY (ArriveAirport)
+        REFERENCES Airport_T (AirportCode)
+);
+
+CREATE TABLE Plane_T (
+    TailNumber VARCHAR(10) PRIMARY KEY,
+    PlaneModel VARCHAR(255) NOT NULL,
+    EngineType VARCHAR(255),
+    BusinessSeats INT(3) NOT NULL,
+    EconomySeats INT(4) NOT NULL
+);
+
+CREATE TABLE FlightInstance_T (
+    AirlineCode CHAR(3) NOT NULL,
+    FlightNumber INT(4) NOT NULL,
+    PlaneID VARCHAR(10) NOT NULL,
+    FlightDate DATE NOT NULL,
+    DepartTime TIME NOT NULL,
+    ArriveTime TIME NOT NULL,
+    TicketPriceFirst NUMERIC(6 , 2 ),
+    ticketPriceEcon NUMERIC(6 , 2 ),
+    ReservedEconomySeats INT DEFAULT 0,
+    ReservedBusinessSeats INT DEFAULT 0,
+    CONSTRAINT FlightInstance_PK PRIMARY KEY (AirlineCode , FlightNumber , FlightDate),
+    FOREIGN KEY (PlaneID)
+        REFERENCES Plane_T (TailNumber),
+    FOREIGN KEY (AirlineCode , FlightNumber)
+        REFERENCES FlightPath_T (AirlineCode , FlightNumber)
+);
+
+CREATE TABLE Customer_T (
+    CustomerID INT NOT NULL AUTO_INCREMENT,
+    CustomerName VARCHAR(255) NOT NULL,
+    CustomerStreet VARCHAR(255) NOT NULL,
+    CustomerCity VARCHAR(255) NOT NULL,
+    CustomerCountry VARCHAR(255) DEFAULT 'United States',
+    PhoneNumber INT(9),
+    PRIMARY KEY (CustomerID)
+);
+
+CREATE TABLE FrequentFlyerMembership_T (
+    CustomerID INT NOT NULL,
+    AirlineID char(3) NOT NULL,
+    Miles INT DEFAULT 0,
+    CONSTRAINT FFMembership_PK PRIMARY KEY (CustomerID , AirlineID),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID),
+    FOREIGN KEY (AirlineID)
+        REFERENCES AirLineCarrier_T (AirlineCode)
+);
+
+CREATE TABLE PaymentMethod_T (
+    CustomerID INT NOT NULL,
+    PaymentMethod VARCHAR(255) NOT NULL,
+    CardNumber BIGINT,
+    CONSTRAINT PaymentMethod_PK PRIMARY KEY (CustomerID , PaymentMethod),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID)
+);
+
+CREATE TABLE Preference_T (
+    CustomerID INT NOT NULL,
+    Preference VARCHAR(255) NOT NULL,
+    Details VARCHAR(255),
+    CONSTRAINT Preference_PK PRIMARY KEY (CustomerID , Preference),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID)
+);
+
+CREATE TABLE Reservation_T (
+    ReservationID INT NOT NULL AUTO_INCREMENT,
+    CustomerID INT NOT NULL,
+    PaymentMethod VARCHAR(255) REFERENCES PaymentMethod_T (PaymentMethod),
+    FFMembership VARCHAR(255) REFERENCES AirLine_T (AirlineName),
+    Preference VARCHAR(255) REFERENCES Preference_T (Preference),
+    TravelAgent VARCHAR(255),
+    Confirmed BOOLEAN,
+    PRIMARY KEY (ReservationID),
+    FOREIGN KEY (CustomerID)
+        REFERENCES Customer_T (CustomerID)
+);
+
+CREATE TABLE ReservationFlight_T (
+    ReservationID INT,
+    AirlineCode CHAR(3) NOT NULL,
+    FlightNumber INT(4) NOT NULL,
+    FlightDate DATE NOT NULL,
+    Avaliable BOOLEAN,
+    CONSTRAINT ReservationFlight_PK PRIMARY KEY (ReservationID , AirlineCode , FlightNumber , FlightDate),
+    CONSTRAINT FlightInstance_FK FOREIGN KEY (AirlineCode , FlightNumber , FlightDate)
+        REFERENCES FlightInstance_T (AirlineCode , FlightNumber , FlightDate),
+    FOREIGN KEY (ReservationID)
+        REFERENCES Reservation_T (ReservationID)
+);

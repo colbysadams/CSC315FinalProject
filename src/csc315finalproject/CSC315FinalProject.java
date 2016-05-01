@@ -19,9 +19,14 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author colbysadams
+ * CSC315FinalProject
+ * Colby Adams
+ * Eric McAllister
+ * Arch Henderson
+ * <p>
+ * <p>
  */
-public class ColbyMain
+public class CSC315FinalProject
 {
 
     private static Connection connect;
@@ -50,15 +55,15 @@ public class ColbyMain
         boolean connected = false;
 
         /*
-         * Take Argument for dataFile from CommandLine
+         * Take Arguments for files from CommandLine
+         *
+         * args[0] = file containing tables
+         * args[1] = file containing data
+         * args[2] = file containing queries
+         *
          *
          */
-        if (args.length == 0)
-        {
-            tableFileString = "tables.txt";
-            queryFileString = "queries.txt";
-            dataFileString = "data.txt";
-        } else if (args.length != 3)
+        if (args.length != 3)
         {
             System.out.println("incorrect arguments: <table file> <data file> <query file>");
             System.exit(-1);
@@ -70,9 +75,6 @@ public class ColbyMain
         }
         //Paths dataFilePath = Paths.
 
-        /*
-         * uncomment "do" and "while" once prompts are in place
-         */
         scan = new Scanner(System.in);
         do
         {
@@ -98,51 +100,55 @@ public class ColbyMain
 
             try
             {
-                Class.forName("com.mysql.jdbc.Driver");
+                java.lang.Class.forName("com.mysql.jdbc.Driver");
                 System.out.println("Connecting to server...");
                 connect = DriverManager.getConnection(serverURL + hostName, userName, password);
                 System.out.println("Connected");
 
                 try
                 {
+                    //try to create database
                     statement = connect.createStatement();
                     statement.executeUpdate("CREATE DATABASE " + databaseName);
 
                 }
                 catch (SQLException e1)
                 {
+                    //if it already exists, replace it with a new one
                     statement.executeUpdate("DROP SCHEMA " + databaseName);
                     statement.executeUpdate("CREATE DATABASE " + databaseName);
                 }
+                //exit while loop
                 connected = true;
             }
             catch (SQLException e)
             {
-
+                //connection failed
                 System.out.println("Couldn't Connect to Server...");
 
             }
             catch (ClassNotFoundException ex)
             {
-                Logger.getLogger(ColbyMain.class.getName()).log(Level.SEVERE, null, ex);
+                //the line Class.forName("com.mysql.jdbc.Driver"); threw an exception
+                Logger.getLogger(CSC315FinalProject.class.getName()).log(Level.SEVERE, null, ex);
             }
 
         } while (!connected);
         try
         {
+            //once database has been created/reset, disconnect
             connect.close();
             statement.close();
         }
         catch (SQLException ex)
         {
-            Logger.getLogger(ColbyMain.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CSC315FinalProject.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         //now connect to database, fill with data and execute queries
         try
         {
 
-            Class.forName("com.mysql.jdbc.Driver");
             System.out.println("Connecting to database...");
             try
             {
@@ -150,15 +156,16 @@ public class ColbyMain
             }
             catch (SQLException e1)
             {
+                //connection failed, end program
                 System.out.println("Couldn't Connect to Database...");
-                //connect.close();
-                Logger.getLogger(ColbyMain.class.getName()).log(Level.SEVERE, null, e1);
+                Logger.getLogger(CSC315FinalProject.class.getName()).log(Level.SEVERE, null, e1);
             }
             System.out.println("Connected");
 
             System.out.println("Building Tables...");
             statement = connect.createStatement();
 
+            //read sql statements from table file to create database
             scan = new Scanner(new FileReader(new File(tableFileString)));
             scan.useDelimiter(";");
 
@@ -179,7 +186,6 @@ public class ColbyMain
             while (scan.hasNextLine())
             {
                 statementString = scan.nextLine();
-
                 statement.executeUpdate(statementString);
             }
 
@@ -187,6 +193,7 @@ public class ColbyMain
 
             System.out.println("Executing Queries...");
 
+            //query tables and print results
             scan = new Scanner(new FileReader(new File(queryFileString)));
             scan.useDelimiter(";");
             ResultSet queryResults;
@@ -206,31 +213,27 @@ public class ColbyMain
 
             System.out.print("Exception was thrown...");
             System.out.println(statementString);
-            Logger.getLogger(ColbyMain.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(CSC315FinalProject.class.getName()).log(Level.SEVERE, null, e);
 
         }
-        catch (ClassNotFoundException ex)
-        {
-            Logger.getLogger(ColbyMain.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
-        //close connections
+        //close connections and end program
         finally
         {
             try
             {
-
                 connect.close();
                 statement.close();
             }
             catch (SQLException ex)
             {
-                Logger.getLogger(ColbyMain.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(CSC315FinalProject.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
     //gets user input for queries where there a ton of results
+    //used when queries return more than 200 results
     private static boolean getUserStop()
     {
         Scanner scan = new Scanner(System.in);
@@ -246,7 +249,7 @@ public class ColbyMain
         return false;
     }
 
-    //prints query results
+    //prints query results all pretty like
     private static void queryPrint(ResultSet queryResults) throws SQLException
     {
         String resultString;
