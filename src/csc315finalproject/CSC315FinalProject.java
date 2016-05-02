@@ -78,7 +78,7 @@ public class CSC315FinalProject
         scan = new Scanner(System.in);
         do
         {
-
+            
             /*
              * prompt user for serverURL, EX (localhost)
              */
@@ -186,9 +186,9 @@ public class CSC315FinalProject
             while (scan.hasNextLine())
             {
                 statementString = scan.nextLine();
-                statement.executeUpdate(statementString);
+                statement.addBatch(statementString);
             }
-
+            statement.executeBatch();
             System.out.println("\nData Populated!\n");
 
             System.out.println("Executing Queries...");

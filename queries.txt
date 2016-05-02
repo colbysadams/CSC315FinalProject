@@ -41,7 +41,7 @@ SELECT
     A.AirportName AS 'Departing Airport',
     AC.AirlineName,
     COUNT(AC.AirlineCode) AS '# of Flights',
-    AVG(FI.TicketPriceEcon) AS 'AVG TicketPrice'
+    ROUND(AVG(FI.TicketPriceEcon),2) AS 'AVG TicketPrice'
 FROM
     AirlineCarrier_T AC,
     FlightInstance_T FI,
